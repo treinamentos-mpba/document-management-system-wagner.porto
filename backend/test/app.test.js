@@ -132,10 +132,11 @@ test('limpa o diretório de storage durante a inicialização', async () => {
     await mkdir(path.join(storageDirectory, 'subdiretorio'));
     await writeFile(path.join(storageDirectory, 'antigo.txt'), 'antigo');
     await writeFile(path.join(storageDirectory, 'subdiretorio', 'antigo.txt'), 'antigo');
+    await writeFile(path.join(storageDirectory, '.gitkeep'), '');
 
     const documentRepository = new DocumentRepository({ storageDirectory });
     await documentRepository.initialize();
-    assert.deepEqual(await readdir(storageDirectory), []);
+    assert.deepEqual(await readdir(storageDirectory), ['.gitkeep']);
   } finally {
     await rm(storageDirectory, { recursive: true, force: true });
   }

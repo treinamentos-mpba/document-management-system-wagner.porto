@@ -21,9 +21,11 @@ class DocumentRepository {
     }
 
     const entries = await readdir(this.storageDirectory);
-    await Promise.all(entries.map((entry) =>
-      rm(path.join(this.storageDirectory, entry), { recursive: true, force: true }),
-    ));
+    await Promise.all(entries
+      .filter((entry) => entry !== '.gitkeep')
+      .map((entry) =>
+        rm(path.join(this.storageDirectory, entry), { recursive: true, force: true }),
+      ));
 
     this.documents.clear();
     this.initialized = true;

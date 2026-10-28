@@ -11,22 +11,47 @@
 // usando multer com diskStorage. Não utilize provedores externos.
 
 const express = require('express');
+const { loadUsers } = require('./config/users');
+const { createDocumentRouter } = require('./routes/documentRoutes');
+const { DocumentRepository } = require('./repositories/documentRepository');
+const { errorHandler } = require('./middleware/errorHandler');
 
-const app = express();
 const PORT = process.env.PORT || 3000;
 
-app.use(express.json());
+function createApp({ users = loadUsers(), documentRepository = new DocumentRepository() } = {}) {
+  const app = express();
 
-// Endpoint de verificação de saúde. As demais rotas (/upload, /documents,
-// /documents/:id/download) serão implementadas durante o Passo 2.
-app.get('/health', (req, res) => {
-  res.json({ status: 'ok' });
-});
+  app.use(express.json());
+  app.get('/health', (_req, res) => {
+    res.json({ status: 'ok' });
+  });
+  app.use(createDocumentRouter({ users, documentRepository }));
+  app.use(errorHandler);
+  app.locals.documentRepository = documentRepository;
+  return app;
+}
 
-if (require.main === module) {
-  app.listen(PORT, () => {
-    console.log(`DMS backend ouvindo na porta ${PORT}`);
+const app = createApp();
+
+async function startServer() {
+  await app.locals.documentRepository.initialize();
+  return new Promise((resolve, reject) => {
+    const server = app.listen(PORT, () => {
+      console.log(`DMS backend ouvindo na porta ${PORT}`);
+      resolve(server);
+    });
+    server.once('error', reject);
   });
 }
+
+if (require.main === module) {
+  startServer().catch(() => {
+    console.error('Não foi possível iniciar o DMS. Verifique a configuração e o armazenamento local.');
+    process.exitCode = 1;
+  });
+}
+
+app.createApp = createApp;
+app.startServer = startServer;
 
 module.exports = app;

@@ -1,6 +1,6 @@
 # Especificação - Document Management System
 
-## 1. Objetivo 
+## 1. Objetivo
 
 Entregar uma aplicação web que permita a usuários autenticados enviar, listar e baixar seus documentos, mantendo os arquivos no filesystem local e os metadados em memória.
 
